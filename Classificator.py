@@ -13,6 +13,9 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
+import wandb
+
+
 # Define transformations for the training and test datasets
 transform = transforms.Compose(
     [
@@ -59,6 +62,17 @@ print("Training")
 
 
 def train_model(model, train_loader, criterion, optimizer, num_epochs=5):
+    wandb.login()
+
+    run = wandb.init(
+        # Set the project where this run will be logged
+        project="my-awesome-project",
+        # Track hyperparameters and run metadata
+        config={
+            "learning_rate": lr,
+            "epochs": epochs,
+        },
+    )
     model.train()  # Set the model to training mode
     for epoch in range(num_epochs):
         running_loss = 0.0
