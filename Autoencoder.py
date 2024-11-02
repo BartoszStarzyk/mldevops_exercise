@@ -13,6 +13,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
+
 # Define the Autoencoder model
 class Autoencoder(nn.Module):
     def __init__(self):
@@ -22,20 +23,20 @@ class Autoencoder(nn.Module):
         self.encoder = nn.Sequential(
             nn.Linear(28 * 28, 128),  # Compress 28x28 images to 128 features
             nn.ReLU(),
-            nn.Linear(128, 64),       # Further compress to 64 features
+            nn.Linear(128, 64),  # Further compress to 64 features
             nn.ReLU(),
-            nn.Linear(64, 32),        # Compress to 32 features
+            nn.Linear(64, 32),  # Compress to 32 features
             nn.ReLU(),
         )
 
         # Decoder
         self.decoder = nn.Sequential(
-            nn.Linear(32, 64),        # Expand to 64 features
+            nn.Linear(32, 64),  # Expand to 64 features
             nn.ReLU(),
-            nn.Linear(64, 128),       # Further expand to 128 features
+            nn.Linear(64, 128),  # Further expand to 128 features
             nn.ReLU(),
             nn.Linear(128, 28 * 28),  # Reconstruct the image (28x28)
-            nn.Sigmoid()              # Sigmoid to map pixel values between 0 and 1
+            nn.Sigmoid(),  # Sigmoid to map pixel values between 0 and 1
         )
 
     def forward(self, x):
@@ -43,9 +44,10 @@ class Autoencoder(nn.Module):
         x = self.decoder(x)
         return x
 
+
 # Load the Fashion MNIST dataset
 transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-train_dataset = datasets.FashionMNIST(root='./data', train=True, transform=transform, download=True)
+train_dataset = datasets.FashionMNIST(root="./data", train=True, transform=transform, download=True)
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 
 # Initialize the model, loss function, and optimizer
@@ -70,9 +72,10 @@ for epoch in range(n_epochs):
         loss.backward()
         optimizer.step()
 
-    print(f'Epoch [{epoch+1}/{n_epochs}], Loss: {loss.item():.4f}')
+    print(f"Epoch [{epoch+1}/{n_epochs}], Loss: {loss.item():.4f}")
 
 import matplotlib.pyplot as plt
+
 
 # Function to visualize the input images and their reconstructed counterparts
 def visualize_reconstruction(model, data_loader, num_images=10):
@@ -82,27 +85,28 @@ def visualize_reconstruction(model, data_loader, num_images=10):
             img, _ = data
             img = img.view(img.size(0), -1)  # Flatten the image
             recon = model(img)  # Reconstruct the image
-            img = img.view(-1, 28, 28)       # Reshape for visualization
-            recon = recon.view(-1, 28, 28)   # Reshape reconstructed images
+            img = img.view(-1, 28, 28)  # Reshape for visualization
+            recon = recon.view(-1, 28, 28)  # Reshape reconstructed images
 
             # Display original and reconstructed images separately
             for i in range(num_images):
                 fig, axes = plt.subplots(1, 2, figsize=(6, 3))
 
                 # Display original image
-                axes[0].imshow(img[i], cmap='gray')
+                axes[0].imshow(img[i], cmap="gray")
                 axes[0].set_title("Original")
-                axes[0].axis('off')
+                axes[0].axis("off")
 
                 # Display reconstructed image
-                axes[1].imshow(recon[i], cmap='gray')
+                axes[1].imshow(recon[i], cmap="gray")
                 axes[1].set_title("Reconstructed")
-                axes[1].axis('off')
+                axes[1].axis("off")
 
                 # Show the figure
                 plt.show()
 
             break  # Only display one batch of images
+
 
 # Visualize the results
 visualize_reconstruction(model, train_loader)
