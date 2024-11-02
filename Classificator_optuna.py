@@ -13,6 +13,8 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 
+import optuna
+
 # Define transformations for the training and test datasets
 transform = transforms.Compose(
     [
@@ -51,12 +53,6 @@ class FashionMNISTNet(nn.Module):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = FashionMNISTNet().to(device)  # Move the model to the GPU if available
-criterion = nn.CrossEntropyLoss()  # Cross-entropy loss function
-optimizer = optim.Adam(model.parameters(), lr=0.001)  # Adam optimizer
-
-print("Training")
-
 
 def train_model(model, train_loader, criterion, optimizer, num_epochs=5):
     model.train()  # Set the model to training mode
@@ -79,26 +75,19 @@ def train_model(model, train_loader, criterion, optimizer, num_epochs=5):
             running_loss += loss.item()
 
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss/len(train_loader):.4f}")
+    return running_loss / len(train_loader)
 
 
 # Train the model for 5 epochs
-train_model(model, train_loader, criterion, optimizer, num_epochs=5)
+def objective(trial):
+    lr = trial.suggest_float("lr", 0.0005, 0.002)
+    model = FashionMNISTNet().to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    loss = train_model(model, train_loader, criterion, optimizer, num_epochs=5)
+    return loss
 
 
-def evaluate_model(model, test_loader):
-    model.eval()  # Set the model to evaluation mode
-    correct = 0
-    total = 0
-    with torch.no_grad():  # Disable gradient calculation for evaluation
-        for images, labels in test_loader:
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            _, predicted = torch.max(outputs, 1)  # Get the predicted class (index of the max logit)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    print(f"Test Accuracy: {100 * correct / total:.2f}%")
-
-
-# Evaluate the trained model
-evaluate_model(model, test_loader)
+study = optuna.create_study(direction="minimize")
+study.optimize(objective, n_trials=5)
+print(study.best_params)
